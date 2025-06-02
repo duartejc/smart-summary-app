@@ -1,12 +1,6 @@
 import { NextRequest } from 'next/server';
 
-/**
- * API Route for handling text summarization requests
- * This is an Edge Function that proxies requests to an AI summarization service
- * and streams the response back to the client.
- */
-
-export const runtime = 'edge';
+export const runtime = "nodejs";
 
 // Instructions for the AI summarization
 const INSTRUCTION = `Summarize the content keeping the original meaning and tone. 
@@ -60,8 +54,6 @@ export async function POST(req: NextRequest) {
       },
       stream: true,
     };
-
-    console.log('will call', url);
 
     const upstreamResponse = await fetch(url, {
       method: 'POST',
