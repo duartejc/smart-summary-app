@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Sparkles } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 /**
  * Main application component that provides a text summarization interface.
@@ -25,11 +27,12 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'input' | 'summary'>('input');
   
   // Summary display state
-  const [summary, setSummary] = useState("");
-  const [fullSummary, setFullSummary] = useState(""); // Complete summary text
-  const [displayedSummary, setDisplayedSummary] = useState(""); // Currently displayed portion
+  const [summary, setSummary] = useState('');
+  const [fullSummary, setFullSummary] = useState(''); // Complete summary text
+  const [displayedSummary, setDisplayedSummary] = useState(''); // Currently displayed portion
   const [isTyping, setIsTyping] = useState(false);
   const [showCursor, setShowCursor] = useState(true); // Cursor visibility for typewriter effect
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -51,12 +54,39 @@ export default function Home() {
       return;
     }
     
-    const interval = setInterval(() => {
-      setShowCursor((prev) => !prev);
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
     }, 500);
-    
-    return () => clearInterval(interval);
+
+    return () => clearInterval(cursorInterval);
   }, [isTyping]);
+  
+  // Typewriter effect for displaying the summary
+  useEffect(() => {
+    if (!isTyping) return;
+
+    if (displayedSummary.length < fullSummary.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedSummary(prev => fullSummary.substring(0, prev.length + 1));
+      }, 20);
+      
+      setTypingTimeout(timeout);
+      
+      return () => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+      };
+    } else {
+      setIsTyping(false);
+    }
+    
+    return () => {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+    };
+  }, [displayedSummary, fullSummary, isTyping, typingTimeout]);
 
   /**
    * Typewriter effect that reveals text character by character

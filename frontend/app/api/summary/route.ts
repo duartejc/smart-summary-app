@@ -61,6 +61,8 @@ export async function POST(req: NextRequest) {
       stream: true,
     };
 
+    console.log('will call', url);
+
     const upstreamResponse = await fetch(url, {
       method: 'POST',
       headers: { 
