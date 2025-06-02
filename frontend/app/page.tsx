@@ -6,17 +6,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Main application component that provides a text summarization interface.
+ * Features:
+ * - Text input with word count
+ * - AI-powered summarization
+ * - Typewriter effect for summary display
+ * - Responsive layout
+ */
 export default function Home() {
+  // State for client-side rendering
   const [isClient, setIsClient] = useState(false);
+  
+  // Form and API state
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [content, setContent] = useState("");
-  const [summary, setSummary] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [activeTab, setActiveTab] = useState<'input' | 'summary'>('input');
-  const [displayedSummary, setDisplayedSummary] = useState(""); // Currently displayed text
+  
+  // Summary display state
+  const [summary, setSummary] = useState("");
+  const [fullSummary, setFullSummary] = useState(""); // Complete summary text
+  const [displayedSummary, setDisplayedSummary] = useState(""); // Currently displayed portion
   const [isTyping, setIsTyping] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
-  const [fullSummary, setFullSummary] = useState(""); // Complete summary
+  const [showCursor, setShowCursor] = useState(true); // Cursor visibility for typewriter effect
 
   useEffect(() => {
     setIsClient(true);
@@ -28,7 +41,10 @@ export default function Home() {
     setWordCount(words);
   }, [content]);
 
-  // Cursor blink effect
+  /**
+   * Controls the blinking cursor effect during typing
+   * Only active when isTyping is true
+   */
   useEffect(() => {
     if (!isTyping) {
       setShowCursor(false);
@@ -42,7 +58,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isTyping]);
 
-  // Typewriter effect
+  /**
+   * Typewriter effect that reveals text character by character
+   * Creates a smooth, animated typing effect for the summary
+   */
   useEffect(() => {
     if (!fullSummary || fullSummary === displayedSummary) {
       setIsTyping(false);
@@ -72,11 +91,14 @@ export default function Home() {
     };
   }, [fullSummary]);
 
-  // Handle new chunks of text from the stream
+  /**
+   * Processes incoming text chunks from the streaming response
+   * Manages the full summary state and triggers the typewriter effect
+   */
   const processStreamText = useCallback((text: string) => {
     setFullSummary(prev => {
       const newText = prev + text;
-      // If we're not currently typing, start a new typing effect
+      // If we're not currently typing, reset the display to start new typing effect
       if (!isTyping) {
         setDisplayedSummary('');
         return newText;
@@ -85,9 +107,17 @@ export default function Home() {
     });
   }, [isTyping]);
 
+  /**
+   * Handles the summarization process
+   * 1. Validates input
+   * 2. Makes API request to summarization service
+   * 3. Processes the streaming response
+   * 4. Manages loading states and errors
+   */
   const handleSummarize = useCallback(async () => {
     if (isSummarizing || !content.trim()) return;
   
+    // Reset states for new summary
     setIsSummarizing(true);
     setActiveTab('summary');
     setDisplayedSummary("");
@@ -98,6 +128,7 @@ export default function Home() {
     let localSummary = "";
   
     try {
+      // Make request to our API route
       const res = await fetch('/api/summary', {
         method: 'POST',
         headers: {
@@ -106,6 +137,7 @@ export default function Home() {
         body: JSON.stringify({ content }),
       });
   
+      // Handle non-OK responses
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         throw new Error(error.error || 'Failed to generate summary');
@@ -113,16 +145,20 @@ export default function Home() {
   
       if (!res.body) throw new Error('No response body from server');
   
+      // Set up streaming reader
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
   
+      // Process the stream
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
   
+        // Decode the chunk and add to buffer
         buffer += decoder.decode(value, { stream: true });
   
+        // Process complete lines from the buffer
         let startIndex = 0;
         let endIndex;
   
@@ -137,9 +173,11 @@ export default function Home() {
           }
         }
   
+        // Keep any incomplete data for next iteration
         buffer = buffer.slice(startIndex);
       }
   
+      // Process any remaining data in buffer
       if (buffer.trim()) {
         localSummary += buffer.trim();
         processStreamText(buffer.trim());
@@ -148,6 +186,8 @@ export default function Home() {
     } catch (error) {
       console.error('Error generating summary:', error);
       localSummary = `Error: ${error instanceof Error ? error.message : 'Failed to generate summary'}`;
+      setFullSummary(localSummary);
+      setDisplayedSummary(localSummary);
     } finally {
       setSummary(localSummary);
       setIsSummarizing(false);
