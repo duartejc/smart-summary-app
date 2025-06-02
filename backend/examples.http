@@ -1,0 +1,19 @@
+### Variables
+@baseUrl = http://localhost:8000
+@apiKey = AVL43XnaNcNECN4EcpPPLHh5mX7fyyPQtcqV2qcCnTAv6
+
+
+### Generate with completion model
+POST {{baseUrl}}/api/ai/generate
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+
+{
+  "model_type": "completion",
+  "prompt_name": "text-improve",
+  "params": {
+    "content": "<p>The quick brown fox jumps over the lazy dog.</p>",
+    "instruction": "make this text funny as if you were a 10 year old"
+
+  }
+} 

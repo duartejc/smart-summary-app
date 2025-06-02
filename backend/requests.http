@@ -1,0 +1,13 @@
+### Chat Model
+
+POST http://localhost:8000/api/ai/generate
+Content-Type: application/json
+X-API-Key: AVL43XnaNcNECN4EcpPPLHh5mX7fyyPQtcqV2qcCnTAv6
+
+{
+  "modelType": "reasoning",
+  "params": {
+    "consultation": "Paciente comparece ao pronto-socorro com historia de 3 dias de dor abdominal, nauseas e vomitos. Sem historia pregressa significativa. Nao toma medicamentos. Sensibilidade no quadrante inferior direito do abdome. Contagem globulos brancos 15.000. nivel lactato 4."
+  }
+}
+
