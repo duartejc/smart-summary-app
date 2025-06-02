@@ -287,7 +287,7 @@ export default function Home() {
                 <div className={`text-center p-8 text-muted-foreground ${isSummarizing ? "animate-pulse" : ""}`}>
                   <Sparkles className="mx-auto h-12 w-12 mb-4 text-gray-300" />
                   <p>Your AI-generated summary will appear here</p>
-                  <p className="text-sm mt-2">Enter some text and click "Generate Summary"</p>
+                  <p className="text-sm mt-2">Enter some text and click &quot;Generate Summary&quot;</p>
                 </div>
               )}
             </div>
