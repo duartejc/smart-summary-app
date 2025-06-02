@@ -1,17 +1,35 @@
 import json
 import logging
+import os
+from functools import wraps
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response, Depends, Header
 from fastapi.responses import StreamingResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any, Literal, Callable, Awaitable, Any
 
 from app.services.ai_service import AIService
-from app.core.security import get_current_user
 from app.core.config import settings
+
+# Security
+security = HTTPBearer()
+API_TOKEN = os.getenv("API_TOKEN", "your-secure-token-here")
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Token verification
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verify the API token from the Authorization header."""
+    token = credentials.credentials
+    if token != API_TOKEN:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token
 
 class GenerateRequest(BaseModel):
     model_type: Literal["completion", "chat"] = "completion"
@@ -49,7 +67,8 @@ async def event_generator(ai_service, model_type: str, params: Dict[str, Any]):
 @router.post("/generate")
 async def generate(
     request: Request,
-    data: GenerateRequest
+    data: GenerateRequest,
+    token: str = Depends(verify_token)
 ):
     """
     Generate AI response based on the provided prompt and parameters.

@@ -39,10 +39,22 @@ A high-performance backend service for the Smart Summary application, built with
    ```
 
 4. **Set up environment variables**
+   Create a `.env` file in the backend directory with the following content:
    ```bash
-   cp .env.example .env
+   # API Security
+   API_TOKEN=your-secure-token-here  # Change this to a secure random string
+   
+   # AI Providers (configure at least one)
+   # OPENAI_API_KEY=your-openai-key
+   # ANTHROPIC_API_KEY=your-anthropic-key
+   # GEMINI_API_KEY=your-gemini-key
+   
+   # JWT Settings
+   SECRET_KEY=your-jwt-secret-key
+   ACCESS_TOKEN_EXPIRE_MINUTES=1440  # 24 hours
    ```
-   Then edit the `.env` file with your configuration.
+   
+   Replace `your-secure-token-here` with a secure random string that will be used to authenticate API requests.
 
 5. **Run the application**
    ```bash
@@ -52,6 +64,39 @@ A high-performance backend service for the Smart Summary application, built with
 6. **Access the API documentation**
    - Swagger UI: http://localhost:8000/docs
    - ReDoc: http://localhost:8000/redoc
+
+## API Authentication
+
+All API endpoints now require a valid API token in the `Authorization` header:
+
+```http
+Authorization: Bearer your-api-token-here
+```
+
+### Making Authenticated Requests
+
+Using `curl`:
+```bash
+curl -X POST http://localhost:8000/api/ai/generate \
+  -H "Authorization: Bearer your-api-token-here" \
+  -H "Content-Type: application/json" \
+  -d '{"model_type": "completion", "params": {"prompt": "Hello, world!"}}'
+```
+
+Using Python with `httpx`:
+```python
+import httpx
+
+async with httpx.AsyncClient() as client:
+    response = await client.post(
+        "http://localhost:8000/api/ai/generate",
+        headers={
+            "Authorization": "Bearer your-api-token-here",
+            "Content-Type": "application/json"
+        },
+        json={"model_type": "completion", "params": {"prompt": "Hello, world!"}}
+    )
+```
 
 ## API Endpoints
 
